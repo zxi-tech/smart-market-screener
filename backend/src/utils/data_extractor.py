@@ -78,4 +78,8 @@ if __name__ == "__main__":
     
     pipeline = MarketDataDownloader(
         tickers=watchlist,
-        start_date="2023-01-01
+        start_date="2023-01-01",
+        end_date="2026-03-01",
+        output_dir=save_dir
+    )
+    pipeline.run()
