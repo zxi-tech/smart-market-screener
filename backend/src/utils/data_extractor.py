@@ -22,9 +22,19 @@ class MarketDataDownloader:
                 print(f"[!] No data found for: {ticker}")
                 return None
 
-            # Flatten multi-level columns and reset index
+            # Reset index to make 'Date' a regular column
             df.reset_index(inplace=True)
-            df.columns = [''.join(col).strip() if isinstance(col, tuple) else col for col in df.columns.values]
+
+            # Fix for yfinance update: flatten multi-index columns safely
+            if isinstance(df.columns, pd.MultiIndex):
+                # Drop the ticker name from the column headers
+                df.columns = df.columns.droplevel(1)
+            else:
+                # Fallback if it's returning tuples
+                df.columns = [col[0].strip() if isinstance(col, tuple) else col for col in df.columns.values]
+            
+            # Ensure 'Date' column is named correctly (sometimes yfinance capitalizes it differently)
+            df.rename(columns={'date': 'Date', 'index': 'Date'}, inplace=True)
             
             return df
             
