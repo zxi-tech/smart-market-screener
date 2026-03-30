@@ -20,34 +20,34 @@ except Exception as e:
 
 @app.route('/api/fundamentals', methods=['GET'])
 def get_fundamentals():
-    """Endpoint untuk mengisi tabel Screener Fundamental di Dashboard."""
+    """Endpoint to populate the Fundamental Screener table in the Dashboard."""
     fund_path = os.path.join(DATA_DIR, 'fundamentals.csv')
     if not os.path.exists(fund_path):
-        return jsonify({"error": "Database Fundamental belum di-generate."}), 404
+        return jsonify({"error": "Fundamental Database has not been generated."}), 404
     
     df = pd.read_csv(fund_path)
-    # Mengubah nilai NaN (kosong) menjadi None agar format JSON tidak error
+    # Convert NaN values to None to prevent JSON formatting errors
     df = df.where(pd.notnull(df), None)
     return jsonify(df.to_dict(orient='records'))
 
 @app.route('/api/stock/<ticker>', methods=['GET'])
 def get_stock_data(ticker):
-    """Endpoint terpusat untuk Grafik Candlestick, Indikator, dan Prediksi AI."""
+    """Centralized endpoint for Candlestick Chart, Indicators, and AI Predictions."""
     file_path = os.path.join(DATA_DIR, f"{ticker}_features.csv")
     if not os.path.exists(file_path):
-        return jsonify({"error": f"Data fitur untuk {ticker} tidak ditemukan."}), 404
+        return jsonify({"error": f"Feature data for {ticker} not found."}), 404
 
     df = pd.read_csv(file_path)
     
-    # Ambil 150 hari terakhir saja agar browser frontend tidak lemot saat merender grafik
+    # Take only the last 150 days to prevent frontend rendering lag
     chart_data = df.tail(150).where(pd.notnull(df.tail(150)), None)
     
-    # AI Prediction Logic (Aman dari bentrok fitur baru)
+    # AI Prediction Logic (Safe from new feature conflicts)
     prediction_data = None
     if model is not None:
         latest_data = df.iloc[-1:]
         try:
-            # Trik Senior Engineer: Hanya ambil kolom yang dikenali oleh model saat di-training dulu
+            # Senior Engineer Trick: Only select features recognized by the model during training
             expected_features = model.feature_names_in_
             features_for_ai = latest_data[expected_features]
             
@@ -59,7 +59,7 @@ def get_stock_data(ticker):
                 "confidence_score": round(float(probability[1] if prediction == 1 else probability[0]) * 100, 2)
             }
         except Exception as e:
-            prediction_data = {"error": "Fitur model tidak sinkron. Perlu training ulang."}
+            prediction_data = {"error": "Model features are out of sync. Retraining required."}
 
     return jsonify({
         "ticker": ticker,

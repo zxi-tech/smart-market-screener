@@ -32,13 +32,10 @@ class MarketFeatureEngineer:
         df['ATR_14'] = ta.atr(df['High'], df['Low'], df['Close'], length=14)
 
         # 4. Machine Learning Target (1 = Price Goes Up, 0 = Price Goes Down)
-        # 4. Machine Learning Target (1 = Price Goes Up, 0 = Price Goes Down)
         df['Target_Next_Day'] = (df['Close'].shift(-1) > df['Close']).astype(float)
 
-        # FIX: Hanya hapus 200 baris pertama (yang kosong karena butuh waktu kalkulasi SMA_200)
         df.dropna(subset=['SMA_200'], inplace=True)
         
-        # FIX: Jangan hapus baris hari ini! Isi saja target besok yang belum terjadi dengan angka 0
         df['Target_Next_Day'] = df['Target_Next_Day'].fillna(0)
 
         return df
