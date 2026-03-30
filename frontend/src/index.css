@@ -2,8 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-    margin: 0;
-    background-color: #0f172a;
-    color: #f1f5f9;
+@layer base {
+    body {
+        @apply bg-[#0B0F19];
+        /* Basic dark navy for backup background */
+    }
+}
+
+/* Premium Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
 }

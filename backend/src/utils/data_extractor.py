@@ -1,7 +1,8 @@
 import yfinance as yf
 import pandas as pd
 import os
-from typing import List, Optional
+from datetime import datetime
+from typing import List
 
 class MarketDataDownloader:
     def __init__(self, tickers: List[str], start_date: str, end_date: str, output_dir: str):
@@ -18,13 +19,13 @@ class MarketDataDownloader:
         print(f"[*] Fetching data for: {ticker}...")
         try:
             # 1. Fetch Historical OHLCV Data
-            df = yf.download(ticker, start=self.start_date, end=self.end_date, progress=False)
+            df = yf.download(ticker, start=self.start_date, progress=False)
             
             if df.empty:
                 print(f"[!] No historical data found for: {ticker}")
                 return
 
-            # Flatten multi-index columns
+            # Flatten multi-index columns handling for yfinance updates
             df.reset_index(inplace=True)
             if isinstance(df.columns, pd.MultiIndex):
                 df.columns = df.columns.droplevel(1)
@@ -41,7 +42,7 @@ class MarketDataDownloader:
             # 2. Fetch Fundamental Data
             stock_info = yf.Ticker(ticker).info
             
-            # Extract specific metrics, use 0 or "N/A" if data is missing
+            # Extract specific metrics, defaulting to 0 or "N/A" if missing
             fundamental_row = {
                 "Ticker": ticker,
                 "Sector": stock_info.get("sector", "N/A"),
@@ -70,16 +71,19 @@ class MarketDataDownloader:
             fund_df.to_csv(fund_path, index=False)
             print(f"\n[v] Master Fundamental Database saved at: {fund_path}")
             
-        print("=== Process Completed ===")
+        print("=== Data Extraction Completed ===")
 
 if __name__ == "__main__":
     watchlist = ["BBCA.JK", "GOTO.JK", "AMMN.JK", "AAPL"]
     save_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data/raw"))
     
+    # Dynamically fetch data up to the current day
+    today_date = datetime.today().strftime('%Y-%m-%d')
+    
     pipeline = MarketDataDownloader(
         tickers=watchlist,
         start_date="2023-01-01",
-        end_date="2026-03-01",
+        end_date=today_date,
         output_dir=save_dir
     )
     pipeline.run()
